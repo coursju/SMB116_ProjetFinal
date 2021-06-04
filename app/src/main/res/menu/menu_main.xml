@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/menu_change_view"
+        android:icon="@drawable/ic_baseline_autorenew_24"
+        android:title="@string/change_view"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/menu_follow_peaks"
+        android:title="@string/follow_peak" />
+    <item
+        android:id="@+id/menu_play_pause"
+        android:title="@string/play_pause" />
+    <item
+        android:id="@+id/menu_setup"
+        android:title="@string/setup" />
+</menu>

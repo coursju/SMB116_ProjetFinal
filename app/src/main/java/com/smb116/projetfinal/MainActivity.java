@@ -5,11 +5,13 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
-import android.widget.Toast;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.data.Entry;
@@ -24,8 +26,12 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     private static final int REQUEST_CODE = 1234;
 
+    private float maxSpectrumValue;
+    private short maxGraphValue;
     private WeakReference<RecordMicrophoneThread> weakRecordMicrophoneThread;
+    public ProjetFinalViewModel projetFinalViewModel;
     private LineChart chart ;
+    private Boolean followPeaks;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,23 +39,31 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         checkForPermission();
         this.chart = findViewById(R.id.chart);
-    }
-
-    public void changeView(View view){
-        weakRecordMicrophoneThread.get().changeViewFlag();
+        projetFinalViewModel = new ProjetFinalViewModelFactory(this).create(ProjetFinalViewModel.class);
+        projetFinalViewModel.initialize(this);
+        maxSpectrumValue = projetFinalViewModel.getMaxSpectrumValue();
+        maxGraphValue = projetFinalViewModel.getMaxGraphValue();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        followPeaks = projetFinalViewModel.getFollowPeaks();
         weakRecordMicrophoneThread = new WeakReference<>(new RecordMicrophoneThread(this));
         weakRecordMicrophoneThread.get().start();
     }
 
     @Override
     protected void onPause() {
+        projetFinalViewModel.setFollowPeaks(followPeaks);
         weakRecordMicrophoneThread.get().interrupt();
         super.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        projetFinalViewModel.saveSerializedObject();
+        super.onDestroy();
     }
 
     public void checkForPermission(){
@@ -84,34 +98,85 @@ public class MainActivity extends AppCompatActivity {
 
     public void drawSpectrum(double[] dData){
         List<Entry> entries = new ArrayList<Entry>();
+        int i = 0;
 
-        for (int i =0; i < dData.length; i++) {
-            entries.add(new Entry(i, (float)Math.abs(dData[i]*4)));
+        if (followPeaks){
+            for (i =0; i< dData.length; i++) {
+                entries.add(new Entry(i, (float)Math.abs(dData[i])));
+            }
+        }else{
+            for (i =0; i< dData.length; i++) {
+                entries.add(new Entry(i, (float)Math.abs(dData[i])));
+            }
+            entries.add(new Entry(i+1, maxSpectrumValue));
         }
+
         LineDataSet dataSet = new LineDataSet(entries, getResources().getString(R.string.spectrum));
         buildChart(dataSet);
     }
 
     public void drawGraph(short[] sData){
-        final short[] dataObjects =  sData;
         List<Entry> entries = new ArrayList<Entry>();
-        for (int i =0; i< dataObjects.length; i++) {
-            entries.add(new Entry(i, dataObjects[i]));
+        int i = 0;
+
+        if (followPeaks){
+            for (i =0; i< sData.length; i++) {
+                entries.add(new Entry(i, sData[i]));
+            }
+        }else{
+            for (i =0; i< sData.length; i++) {
+                entries.add(new Entry(i, sData[i]));
+            }
+            entries.add(new Entry(i+1, maxGraphValue));
+            entries.add(new Entry(i+2, -maxGraphValue));
         }
+
         LineDataSet dataSet = new LineDataSet(entries, getResources().getString(R.string.waveform));
         buildChart(dataSet);
     }
 
     public void buildChart(LineDataSet dataSet){
         dataSet.setColor(getResources().getColor(R.color.black));
-        dataSet.setValueTextColor(getResources().getColor(R.color.purple_200)); // styling, ...
+        dataSet.setValueTextColor(getResources().getColor(R.color.purple_200));
         dataSet.setDrawCircleHole(false);
         dataSet.setDrawCircles(false);
         LineData lineData = new LineData(dataSet);
         chart.clear();
         chart.setData(lineData);
-        chart.invalidate(); // refresh
+        chart.invalidate();
         weakRecordMicrophoneThread.get().goThough();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_change_view:
+                weakRecordMicrophoneThread.get().changeViewFlag();
+                return true;
+            case R.id.menu_follow_peaks:
+                followPeaks = !followPeaks;
+                return true;
+            case R.id.menu_play_pause:
+                if (weakRecordMicrophoneThread.get().getIsRecording()){
+                    weakRecordMicrophoneThread.get().stopRecorder();
+                }else{
+                    weakRecordMicrophoneThread = new WeakReference<>(new RecordMicrophoneThread(this));
+                    weakRecordMicrophoneThread.get().start();
+                }
+                return true;
+            case R.id.menu_setup:
+                startActivity(new Intent(this, SetupActivity.class));
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
 }

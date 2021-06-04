@@ -2,4 +2,50 @@
     <string name="app_name">ProjetFinal</string>
     <string name="spectrum">Spectrum view</string>
     <string name="waveform">Waveform view</string>
+
+<!--    MENU -->
+    <string name="change_view">Change view</string>
+    <string name="follow_peak">Follow peaks</string>
+    <string name="play_pause">Play / Pause</string>
+    <string name="setup">setup</string>
+
+<!--    SETUP -->
+    <string name="setup_title">Setup</string>
+
+    <string name="setup_buffer_size">Change buffer size</string>
+    <string-array name="setup_array_buffer_size">
+        <item>4096</item>
+        <item>2048</item>
+        <item>1024</item>
+        <item>512</item>
+        <item>256</item>
+    </string-array>
+
+    <string name="setup_sample_rate">Change sample rate</string>
+    <string-array name="setup_array_sample_rate">
+        <item>32000</item>
+        <item>16000</item>
+        <item>8000</item>
+        <item>4000</item>
+    </string-array>
+
+    <string name="setup_max_spectrum_value">Maximum Y fix value for spectrum</string>
+    <string-array name="setup_array_max_spectrum_value">
+        <item>70</item>
+        <item>60</item>
+        <item>50</item>
+        <item>40</item>
+        <item>30</item>
+    </string-array>
+
+    <string name="setup_max_graph_value">Maximum Y fix value for graph</string>
+    <string-array name="setup_array_max_graph_value">
+        <item>7000</item>
+        <item>6000</item>
+        <item>5000</item>
+        <item>4000</item>
+        <item>3000</item>
+    </string-array>
+
 </resources>
+
