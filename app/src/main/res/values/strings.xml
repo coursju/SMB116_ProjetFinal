@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">ProjetFinal</string>
+    <string name="spectrum">Spectrum view</string>
+    <string name="waveform">Waveform view</string>
 </resources>
