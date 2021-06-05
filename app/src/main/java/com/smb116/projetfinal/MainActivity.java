@@ -32,6 +32,7 @@ public class MainActivity extends AppCompatActivity {
     public ProjetFinalViewModel projetFinalViewModel;
     private LineChart chart ;
     private Boolean followPeaks;
+    private Boolean granted = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,15 +49,17 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        followPeaks = projetFinalViewModel.getFollowPeaks();
-        weakRecordMicrophoneThread = new WeakReference<>(new RecordMicrophoneThread(this));
-        weakRecordMicrophoneThread.get().start();
+       if (granted){
+           ifIsGranted();
+       }
     }
 
     @Override
     protected void onPause() {
-        projetFinalViewModel.setFollowPeaks(followPeaks);
-        weakRecordMicrophoneThread.get().interrupt();
+        if (granted){
+            projetFinalViewModel.setFollowPeaks(followPeaks);
+            weakRecordMicrophoneThread.get().interrupt();
+        }
         super.onPause();
     }
 
@@ -64,6 +67,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         projetFinalViewModel.saveSerializedObject();
         super.onDestroy();
+    }
+
+    private void ifIsGranted(){
+        followPeaks = projetFinalViewModel.getFollowPeaks();
+        weakRecordMicrophoneThread = new WeakReference<>(new RecordMicrophoneThread(this));
+        weakRecordMicrophoneThread.get().start();
     }
 
     public void checkForPermission(){
@@ -74,6 +83,8 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.RECORD_AUDIO},
                     REQUEST_CODE);
+        }else{
+            granted = true;
         }
     }
 
@@ -86,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     Log.d("TAG", "permission OK by user");
-
+                    granted = true;
                 } else {
                     Log.d("TAG", "permission DENIED by user");
                     finish();
